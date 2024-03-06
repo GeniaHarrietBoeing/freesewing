@@ -1,12 +1,12 @@
-export const front = {
-  name: 'ace_of_swords.front',
-  measurements: ['waist', 'highBust', 'waistToArmpit', 'hpsToWaistFront', 'shoulderToShoulder'],
+export const back = {
+  name: 'ace_of_swords.back',
+  measurements: ['waist', 'highBust', 'waistToArmpit', 'hpsToWaistBack', 'shoulderToShoulder'],
   draft: ({ Path, paths, Point, points, measurements, store, part }) => {
     const shirringMod = 1.5
     const waistLength = (measurements.waist * shirringMod) / 4
     const neckLength = (measurements.shoulderToShoulder * shirringMod) / 4
     const verticalLength =
-      measurements.waistToArmpit + (measurements.hpsToWaistFront - measurements.waistToArmpit) / 2
+      measurements.waistToArmpit + (measurements.hpsToWaistBack - measurements.waistToArmpit) / 2
 
     paths.front = new Path()
       .move(new Point(0, 0))
@@ -16,7 +16,7 @@ export const front = {
       .line(new Point(neckLength, 0))
       .line(new Point(0, 0))
 
-    store.set('frontArmholeLength', 10)
+    store.set('backArmholeLength', 10)
 
     return part
   },
