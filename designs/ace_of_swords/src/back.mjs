@@ -4,7 +4,7 @@ export const back = {
   draft: ({ Path, paths, Point, points, measurements, store, macro, paperless, part }) => {
     const shirringMod = 1.5
     const waistLength = (measurements.waist * shirringMod) / 4
-    const neckLength = (measurements.shoulderToShoulder * shirringMod) / 4
+    const neckLength = (measurements.shoulderToShoulder * shirringMod) / 2
     const verticalLength =
       measurements.waistToArmpit + (measurements.hpsToWaistBack - measurements.waistToArmpit) / 2
 

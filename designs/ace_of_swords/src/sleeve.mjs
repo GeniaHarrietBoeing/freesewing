@@ -4,7 +4,7 @@ export const sleeve = {
   draft: ({ Path, paths, Point, points, measurements, store, macro, paperless, part }) => {
     const elasticMod = 1.5
     const shirringMod = 1.5
-    const shoulderWidth = measurements.biceps * shirringMod * 0.75
+    const shoulderWidth = measurements.biceps * shirringMod * 0.5
     // 0.75 is the proportion of my biceps and the measurement for the off the shoulder sleeve
     const wristWidth = measurements.biceps * elasticMod
     const backArmholeLength = store.get('backArmholeLength')
@@ -21,6 +21,7 @@ export const sleeve = {
 
     // Fitting the back armsleeve curve
     let tweak = 1
+    let runs = 0
     let delta
     do {
       points.cp1 = points.backShoulder.shift(200, tweak * 30).addCircle(5)
@@ -30,9 +31,10 @@ export const sleeve = {
         .move(points.backShoulder)
         .curve(points.cp1, points.cp2, points.backArmpit)
       delta = paths.backSleeve.length() - backArmholeLength
+      runs++
       if (delta > 0) tweak = tweak * 0.99
       else tweak = tweak * 1.02
-    } while (Math.abs(delta) > 1)
+    } while (Math.abs(delta) > 1 && runs < 50)
 
     paths.shoulder = new Path().move(points.backShoulder).line(points.frontShoulder)
 
