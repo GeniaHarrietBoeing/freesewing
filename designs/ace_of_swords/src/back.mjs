@@ -3,8 +3,10 @@ export const back = {
   measurements: ['waist', 'highBust', 'waistToArmpit', 'hpsToWaistBack', 'shoulderToShoulder'],
   draft: ({ Path, paths, Point, points, measurements, store, macro, paperless, part }) => {
     const shirringMod = 1.5
-    const waistLength = (measurements.waist * shirringMod) / 4
-    const neckLength = (measurements.shoulderToShoulder * shirringMod) / 2
+    const horizontalArmscyeLength = measurements.highBust / 4 - measurements.shoulderToShoulder / 2
+    const waistLength = (measurements.waist / 4 + horizontalArmscyeLength) * shirringMod
+    const armpitToArmpit = measurements.shoulderToShoulder * 0.85
+    const neckLength = (armpitToArmpit * shirringMod) / 2
     const verticalLength =
       measurements.waistToArmpit + (measurements.hpsToWaistBack - measurements.waistToArmpit) / 2
 
@@ -19,12 +21,22 @@ export const back = {
       .line(points.centerWaist)
       .line(points.sideWaist)
       .line(points.armpit)
-      .line(points.shoulder)
+      .move(points.shoulder)
       .line(points.centerNeck)
 
-    paths.armhole = new Path().move(points.shoulder).line(points.armpit)
+    points.cp1 = points.armpit.shift(170, 50).addCircle(3)
+    paths.armhole = new Path().move(points.shoulder)._curve(points.cp1, points.armpit)
     store.set('backArmholeLength', paths.armhole.length())
 
+    points.middle = new Point(waistLength / 2, verticalLength / 2)
+    points.title = points.middle
+    macro('title', {
+      at: points.title,
+      nr: 2,
+      title: 'Bodice Back',
+      align: 'center',
+      scale: 0.8,
+    })
     macro('hd', {
       id: 'neckLength',
       from: points.centerNeck,

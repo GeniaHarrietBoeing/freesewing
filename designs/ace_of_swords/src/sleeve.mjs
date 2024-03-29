@@ -1,7 +1,7 @@
 export const sleeve = {
   name: 'ace_of_swords.sleeve',
   measurements: ['biceps', 'wrist', 'shoulderToWrist', 'shoulderToElbow'],
-  draft: ({ Path, paths, Point, points, measurements, store, macro, paperless, part }) => {
+  draft: ({ Path, paths, Point, points, measurements, store, macro, paperless, sa, part }) => {
     const elasticMod = 1.5
     const shirringMod = 1.5
     const shoulderWidth = measurements.biceps * shirringMod * 0.5
@@ -10,31 +10,45 @@ export const sleeve = {
     const backArmholeLength = store.get('backArmholeLength')
     const frontArmholeLength = store.get('frontArmholeLength')
     // Here I sort off have to decide how much higher the shoulder seam is compared to the armpit meating of all seams. What I have going for me, is that the length and proportions of people's arms are relatively similar. And, this doesn't need to approximate someones anatomical armpit height, because the sleeve is loose.
-    const wristToArmpitLength = measurements.shoulderToWrist * 0.7
+    const wristToArmpitLength = measurements.shoulderToWrist * 0.8
 
-    points.backShoulder = new Point(wristWidth / 2 - shoulderWidth / 2, 0).addCircle(10)
-    points.frontShoulder = points.backShoulder.shift(0, shoulderWidth).addCircle(2)
-    points.backArmpit = new Point(0, measurements.shoulderToWrist - wristToArmpitLength).addCircle(
-      3
-    )
-    points.frontArmpit = points.backArmpit.shift(0, wristWidth).addCircle(8)
+    points.backShoulder = new Point(wristWidth / 2 - shoulderWidth / 2, 0)
+    points.frontShoulder = points.backShoulder.shift(0, shoulderWidth)
+    points.backArmpit = new Point(0, measurements.shoulderToWrist - wristToArmpitLength)
+    points.frontArmpit = points.backArmpit.shift(0, wristWidth)
 
     // Fitting the back armsleeve curve
     let tweak = 1
     let runs = 0
     let delta
     do {
-      points.cp1 = points.backShoulder.shift(200, tweak * 30).addCircle(5)
-      points.cp2 = points.backArmpit.shift(0, 30).addCircle(3)
+      points.cp1Back = points.backShoulder.shift(180, tweak * 30).addCircle(5)
+      points.cp2Back = points.backArmpit.shift(0, 30).addCircle(3)
 
       paths.backSleeve = new Path()
         .move(points.backShoulder)
-        .curve(points.cp1, points.cp2, points.backArmpit)
+        .curve(points.cp1Back, points.cp2Back, points.backArmpit)
       delta = paths.backSleeve.length() - backArmholeLength
       runs++
       if (delta > 0) tweak = tweak * 0.99
       else tweak = tweak * 1.02
     } while (Math.abs(delta) > 1 && runs < 50)
+
+    // Fitting the front armsleeve curve
+    tweak = 1
+    runs = 0
+    do {
+      points.cp1Front = points.frontShoulder.shift(0, tweak * 30).addCircle(5)
+      points.cp2Front = points.frontArmpit.shift(180, 30).addCircle(3)
+
+      paths.frontSleeve = new Path()
+        .move(points.frontShoulder)
+        .curve(points.cp1Front, points.cp2Front, points.frontArmpit)
+      delta = paths.frontSleeve.length() - frontArmholeLength
+      runs++
+      if (delta > 0) tweak = tweak * 0.99
+      else tweak = tweak * 1.02
+    } while (Math.abs(delta) > 1 && runs < 100)
 
     paths.shoulder = new Path().move(points.backShoulder).line(points.frontShoulder)
 
@@ -46,6 +60,24 @@ export const sleeve = {
       .line(points.backWrist)
       .line(points.frontWrist)
       .line(points.frontArmpit)
+
+    // preparing the Seam Allowance
+    paths.frontSleeve = paths.frontSleeve.reverse(true)
+    paths.seam = paths.frontSleeve
+      .join(paths.wrist, paths.backSleeve.reverse(true))
+      .setClass('lining dotted')
+    if (sa) paths.sa = paths.seam.offset(sa).addClass('fabric sa')
+
+    // placing the information on the pattern
+    points.middle = new Point(wristWidth / 2, wristToArmpitLength)
+    points.title = points.middle
+    macro('title', {
+      at: points.title,
+      nr: 3,
+      title: 'Sleeve',
+      align: 'center',
+      scale: 0.8,
+    })
 
     macro('hd', {
       id: 'shoulder',
@@ -81,6 +113,11 @@ export const sleeve = {
       id: 'backSleeve',
       path: paths.backSleeve,
       d: 10,
+    })
+    macro('pd', {
+      id: 'frontSleeve',
+      path: paths.frontSleeve,
+      d: -10,
     })
 
     return part
