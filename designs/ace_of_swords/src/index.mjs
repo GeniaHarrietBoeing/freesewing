@@ -7,13 +7,12 @@ import { data } from '../data.mjs'
 import { front } from './front.mjs'
 import { back } from './back.mjs'
 import { sleeve } from './sleeve.mjs'
-import { join } from './join.mjs'
 
 // Create new design
 const Ace_of_swords = new Design({
   data,
-  parts: [join],
+  parts: [front, back, sleeve],
 })
 
 // Named exports
-export { join, i18n, Ace_of_swords }
+export { front, back, sleeve, i18n, Ace_of_swords }

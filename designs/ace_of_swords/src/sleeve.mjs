@@ -60,12 +60,14 @@ export const sleeve = {
       .line(points.backWrist)
       .line(points.frontWrist)
       .line(points.frontArmpit)
+      .hide()
 
     // preparing the Seam Allowance
-    paths.frontSleeve = paths.frontSleeve.reverse(true)
-    paths.seam = paths.frontSleeve
-      .join(paths.wrist, paths.backSleeve.reverse(true))
-      .setClass('lining dotted')
+    paths.seam = paths.backSleeve.join(
+      paths.wrist,
+      paths.frontSleeve.reverse(true),
+      paths.shoulder.reverse(true)
+    )
     if (sa) paths.sa = paths.seam.offset(sa).addClass('fabric sa')
 
     // placing the information on the pattern
