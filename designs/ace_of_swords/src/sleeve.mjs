@@ -1,7 +1,20 @@
 export const sleeve = {
   name: 'ace_of_swords.sleeve',
   measurements: ['biceps', 'wrist', 'shoulderToWrist', 'shoulderToElbow'],
-  draft: ({ Path, paths, Point, points, measurements, store, macro, paperless, sa, part }) => {
+  draft: ({
+    Path,
+    paths,
+    Point,
+    points,
+    Snippet,
+    snippets,
+    measurements,
+    store,
+    macro,
+    paperless,
+    sa,
+    part,
+  }) => {
     const elasticMod = 1.5
     const shirringMod = 1.5
     const shoulderWidth = measurements.biceps * shirringMod * 0.5
@@ -25,10 +38,10 @@ export const sleeve = {
       points.cp1Back = points.backShoulder.shift(180, tweak * 30).addCircle(5)
       points.cp2Back = points.backArmpit.shift(0, 30).addCircle(3)
 
-      paths.backSleeve = new Path()
+      paths.backArmhole = new Path()
         .move(points.backShoulder)
         .curve(points.cp1Back, points.cp2Back, points.backArmpit)
-      delta = paths.backSleeve.length() - backArmholeLength
+      delta = paths.backArmhole.length() - backArmholeLength
       runs++
       if (delta > 0) tweak = tweak * 0.99
       else tweak = tweak * 1.02
@@ -41,10 +54,10 @@ export const sleeve = {
       points.cp1Front = points.frontShoulder.shift(0, tweak * 30).addCircle(5)
       points.cp2Front = points.frontArmpit.shift(180, 30).addCircle(3)
 
-      paths.frontSleeve = new Path()
+      paths.frontArmhole = new Path()
         .move(points.frontShoulder)
         .curve(points.cp1Front, points.cp2Front, points.frontArmpit)
-      delta = paths.frontSleeve.length() - frontArmholeLength
+      delta = paths.frontArmhole.length() - frontArmholeLength
       runs++
       if (delta > 0) tweak = tweak * 0.99
       else tweak = tweak * 1.02
@@ -55,6 +68,10 @@ export const sleeve = {
     points.backWrist = new Point(0, measurements.shoulderToWrist)
     points.frontWrist = points.backWrist.shift(0, wristWidth)
 
+    paths.backUnderarm = new Path().move(points.backArmpit).line(points.backWrist)
+
+    paths.frontUnderarm = new Path().move(points.frontArmpit).line(points.frontWrist)
+
     paths.wrist = new Path()
       .move(points.backArmpit)
       .line(points.backWrist)
@@ -62,10 +79,29 @@ export const sleeve = {
       .line(points.frontArmpit)
       .hide()
 
+    // Notches
+    snippets.backArmhole = new Snippet(
+      'bnotch',
+      paths.backArmhole.shiftAlong(backArmholeLength / 2)
+    )
+    snippets.frontArmhole = new Snippet(
+      'notch',
+      paths.frontArmhole.shiftAlong(frontArmholeLength / 2)
+    )
+    snippets.midBackSleeve = new Snippet(
+      'notch',
+      paths.backUnderarm.shiftAlong(paths.backUnderarm.length() / 2)
+    )
+    snippets.midFrontSleeve = new Snippet(
+      'notch',
+      paths.frontUnderarm.shiftAlong(paths.frontUnderarm.length() / 2)
+    )
+
     // preparing the Seam Allowance
-    paths.seam = paths.backSleeve.join(
+    // TODO: Wrist SA and Shoulder SA need to maybe be adapted
+    paths.seam = paths.backArmhole.join(
       paths.wrist,
-      paths.frontSleeve.reverse(true),
+      paths.frontArmhole.reverse(true),
       paths.shoulder.reverse(true)
     )
     if (sa) paths.sa = paths.seam.offset(sa).addClass('fabric sa')
@@ -112,13 +148,13 @@ export const sleeve = {
       x: points.backWrist.x - 10,
     })
     macro('pd', {
-      id: 'backSleeve',
-      path: paths.backSleeve,
+      id: 'backArmhole',
+      path: paths.backArmhole,
       d: 10,
     })
     macro('pd', {
-      id: 'frontSleeve',
-      path: paths.frontSleeve,
+      id: 'frontArmhole',
+      path: paths.frontArmhole,
       d: -10,
     })
 
