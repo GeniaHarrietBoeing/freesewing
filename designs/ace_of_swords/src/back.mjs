@@ -2,18 +2,21 @@ export const back = {
   name: 'ace_of_swords.back',
   measurements: ['waist', 'highBust', 'waistToArmpit', 'hpsToWaistBack', 'shoulderToShoulder'],
   draft: ({ Path, paths, Point, points, measurements, store, macro, paperless, part }) => {
-    const shirringMod = 1.5
-    const horizontalArmscyeLength = measurements.highBust / 4 - measurements.shoulderToShoulder / 2
-    const waistLength = (measurements.waist / 4 + horizontalArmscyeLength) * shirringMod
-    const armpitToArmpit = measurements.shoulderToShoulder * 0.85
-    const neckLength = (armpitToArmpit * shirringMod) / 2
-    const verticalLength =
+    let shirringMod = 1.5
+    let horizontalArmscyeLength = measurements.highBust / 4 - measurements.shoulderToShoulder / 2
+    let waistLength = (measurements.waist / 4) * shirringMod
+    let armpitToArmpit = measurements.shoulderToShoulder * 0.85
+    let neckLength = (armpitToArmpit * shirringMod) / 2
+    let verticalLength =
       measurements.waistToArmpit + (measurements.hpsToWaistBack - measurements.waistToArmpit) / 2
 
     points.centerNeck = new Point(0, 0)
     points.centerWaist = new Point(0, verticalLength)
     points.sideWaist = new Point(waistLength, verticalLength)
-    points.armpit = new Point(waistLength, verticalLength - measurements.waistToArmpit)
+    points.armpit = new Point(
+      (measurements.highBust / 4) * shirringMod,
+      verticalLength - measurements.waistToArmpit
+    )
     points.shoulder = new Point(neckLength, 0)
 
     paths.front = new Path()
@@ -24,6 +27,7 @@ export const back = {
       .move(points.shoulder)
       .line(points.centerNeck)
 
+    // TODO: get rid of CP  hard distances
     points.cp1 = points.armpit.shift(170, 50).addCircle(3)
     paths.armhole = new Path().move(points.shoulder)._curve(points.cp1, points.armpit)
     store.set('backArmholeLength', paths.armhole.length())
@@ -55,6 +59,12 @@ export const back = {
       to: points.armpit,
       y: points.armpit.y,
     })
+    macro('hd', {
+      id: 'bustWidth',
+      from: points.centerNeck,
+      to: points.armpit,
+      y: points.armpit.y,
+    })
     macro('vd', {
       id: 'sideSeam',
       from: points.sideWaist,
@@ -76,6 +86,11 @@ export const back = {
     macro('pd', {
       id: 'armhole',
       path: paths.armhole,
+      d: -10,
+    })
+    macro('pd', {
+      id: 'sideseam',
+      path: new Path().move(points.armpit).line(points.sideWaist),
       d: -10,
     })
 

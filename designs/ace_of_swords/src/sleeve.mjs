@@ -51,8 +51,8 @@ export const sleeve = {
     tweak = 1
     runs = 0
     do {
-      points.cp1Front = points.frontShoulder.shift(0, tweak * 30).addCircle(5)
-      points.cp2Front = points.frontArmpit.shift(180, 30).addCircle(3)
+      points.cp1Front = points.frontShoulder.shift(0, 30).addCircle(5)
+      points.cp2Front = points.frontArmpit.shift(180, tweak * 30).addCircle(3)
 
       paths.frontArmhole = new Path()
         .move(points.frontShoulder)
