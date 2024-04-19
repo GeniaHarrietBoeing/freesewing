@@ -1,5 +1,9 @@
+import { front } from './front.mjs'
+import { back } from './back.mjs'
+
 export const sleeve = {
   name: 'ace_of_swords.sleeve',
+  after: [front, back],
   measurements: ['biceps', 'wrist', 'shoulderToWrist', 'shoulderToElbow'],
   draft: ({
     Path,
@@ -19,11 +23,11 @@ export const sleeve = {
     const shirringMod = 1.5
     const shoulderWidth = measurements.biceps * shirringMod * 0.5
     // 0.75 is the proportion of my biceps and the measurement for the off the shoulder sleeve
-    const wristWidth = measurements.biceps * elasticMod
-    const backArmholeLength = store.get('backArmholeLength')
-    const frontArmholeLength = store.get('frontArmholeLength')
+    let wristWidth = measurements.biceps * elasticMod
+    let backArmholeLength = store.get('backArmholeLength')
+    let frontArmholeLength = store.get('frontArmholeLength')
     // Here I sort off have to decide how much higher the shoulder seam is compared to the armpit meating of all seams. What I have going for me, is that the length and proportions of people's arms are relatively similar. And, this doesn't need to approximate someones anatomical armpit height, because the sleeve is loose.
-    const wristToArmpitLength = measurements.shoulderToWrist * 0.8
+    let wristToArmpitLength = measurements.shoulderToWrist * 0.8
 
     points.backShoulder = new Point(wristWidth / 2 - shoulderWidth / 2, 0)
     points.frontShoulder = points.backShoulder.shift(0, shoulderWidth)
@@ -35,8 +39,8 @@ export const sleeve = {
     let runs = 0
     let delta
     do {
-      points.cp1Back = points.backShoulder.shift(180, tweak * 30).addCircle(5)
-      points.cp2Back = points.backArmpit.shift(0, 30).addCircle(3)
+      points.cp1Back = points.backShoulder.shift(180, 30).addCircle(5)
+      points.cp2Back = points.backArmpit.shift(0, tweak * 30).addCircle(3)
 
       paths.backArmhole = new Path()
         .move(points.backShoulder)

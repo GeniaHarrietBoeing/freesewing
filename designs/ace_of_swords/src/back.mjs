@@ -1,23 +1,31 @@
 export const back = {
   name: 'ace_of_swords.back',
-  measurements: ['waist', 'highBust', 'waistToArmpit', 'hpsToWaistBack', 'shoulderToShoulder'],
+  measurements: [
+    'waist',
+    'highBust',
+    'waistToArmpit',
+    'hpsToWaistBack',
+    'shoulderToShoulder',
+    'highBustFront',
+  ],
   draft: ({ Path, paths, Point, points, measurements, store, macro, paperless, part }) => {
     let shirringMod = 1.5
-    let horizontalArmscyeLength = measurements.highBust / 4 - measurements.shoulderToShoulder / 2
     let waistLength = (measurements.waist / 4) * shirringMod
     let armpitToArmpit = measurements.shoulderToShoulder * 0.85
     let neckLength = (armpitToArmpit * shirringMod) / 2
     let verticalLength =
       measurements.waistToArmpit + (measurements.hpsToWaistBack - measurements.waistToArmpit) / 2
+    let bustWidth = ((measurements.highBust - measurements.highBustFront) / 2) * shirringMod
+    // check for the case that someone's chest is smaller than their waist
+    if (bustWidth < waistLength) bustWidth = waistLength
 
     points.centerNeck = new Point(0, 0)
     points.centerWaist = new Point(0, verticalLength)
     points.sideWaist = new Point(waistLength, verticalLength)
-    points.armpit = new Point(
-      (measurements.highBust / 4) * shirringMod,
-      verticalLength - measurements.waistToArmpit
-    )
+    points.armpit = new Point(bustWidth, verticalLength - measurements.waistToArmpit)
     points.shoulder = new Point(neckLength, 0)
+
+    let horizontalArmscyeLength = points.armpit.x - points.shoulder.x
 
     paths.front = new Path()
       .move(points.centerNeck)
@@ -27,8 +35,7 @@ export const back = {
       .move(points.shoulder)
       .line(points.centerNeck)
 
-    // TODO: get rid of CP  hard distances
-    points.cp1 = points.armpit.shift(170, 50).addCircle(3)
+    points.cp1 = points.armpit.shift(170, horizontalArmscyeLength).addCircle(3)
     paths.armhole = new Path().move(points.shoulder)._curve(points.cp1, points.armpit)
     store.set('backArmholeLength', paths.armhole.length())
 

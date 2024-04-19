@@ -5,28 +5,34 @@ export const front = {
     'highBust',
     'waistToArmpit',
     'hpsToWaistFront',
+    'hpsToBust',
     'shoulderToShoulder',
     'chest',
     'bustFront',
     'underbust',
+    'highBustFront',
   ],
   draft: ({ Path, paths, Point, points, measurements, store, macro, paperless, part }) => {
-    let shirringMod = 1.5
+    const shirringMod = 1.5
 
     let armpitToArmpit = measurements.shoulderToShoulder * 0.85
     let neckLength = (armpitToArmpit * shirringMod) / 2
     let verticalLength =
       measurements.waistToArmpit + (measurements.hpsToWaistFront - measurements.waistToArmpit) / 2
-    let horizontalArmscyeLength = measurements.chest / 4 - measurements.shoulderToShoulder / 2
     let waistLength = (measurements.waist / 4) * shirringMod
-    let bustWidth = (measurements.highBust / 4) * shirringMod // TODO: Too large, since we don't want the shirred volume over chest, but need to test large enough for someone's chest
+    let bustWidth = (measurements.highBustFront / 2) * shirringMod // TODO: Too large, since we don't want the shirred volume over chest, but need to test large enough for someone's chest
     let ratioBustUnderbust = measurements.chest / measurements.underbust // related to the fleshiness of the chest, just to get a feeling for how much the bust would distort the hpsToWaistFront and keeps it from being a true vertical measurement. if this is large, then the hpsToFrontWaist will have a higher deviance from a vertical measurement
+
+    // check for the case that someone's chest is smaller than their waist
+    if (bustWidth < waistLength) bustWidth = waistLength
 
     points.centerNeck = new Point(0, 0)
     points.centerWaist = new Point(0, verticalLength)
     points.sideWaist = new Point(waistLength, verticalLength)
     points.armpit = new Point(bustWidth, verticalLength - measurements.waistToArmpit)
     points.shoulder = new Point(neckLength, 0)
+
+    let horizontalArmscyeLength = points.armpit.x - points.shoulder.x
 
     paths.front = new Path()
       .move(points.centerNeck)
@@ -36,7 +42,7 @@ export const front = {
       .move(points.shoulder)
       .line(points.centerNeck)
 
-    points.cp1 = points.armpit.shift(170, horizontalArmscyeLength * 1.5).addCircle(3)
+    points.cp1 = points.armpit.shift(170, horizontalArmscyeLength * 1).addCircle(3)
     paths.armhole = new Path().move(points.shoulder)._curve(points.cp1, points.armpit)
     store.set('frontArmholeLength', paths.armhole.length())
 
@@ -74,6 +80,23 @@ export const front = {
       to: points.armpit,
       y: points.armpit.y,
     })
+
+    points.bustApex = new Point(
+      0,
+      points.centerWaist.y - (measurements.hpsToWaistFront - measurements.hpsToBust)
+    ).setCircle(5)
+    macro('hd', {
+      id: 'widthAtApex',
+      from: new Point(
+        0,
+        points.centerWaist.y - (measurements.hpsToWaistFront - measurements.hpsToBust)
+      ),
+      to: new Point(
+        points.armpit.x,
+        points.centerWaist.y - (measurements.hpsToWaistFront - measurements.hpsToBust)
+      ),
+      y: points.centerWaist.y - (measurements.hpsToWaistFront - measurements.hpsToBust),
+    })
     macro('vd', {
       id: 'sideSeam',
       from: points.sideWaist,
@@ -95,6 +118,11 @@ export const front = {
     macro('pd', {
       id: 'armhole',
       path: paths.armhole,
+      d: -10,
+    })
+    macro('pd', {
+      id: 'sideseam',
+      path: new Path().move(points.armpit).line(points.sideWaist),
       d: -10,
     })
 
