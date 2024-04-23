@@ -27,35 +27,31 @@ export const front = {
     if (bustWidth < waistLength) bustWidth = waistLength
 
     points.centerNeck = new Point(0, 0)
-    points.centerWaist = new Point(0, verticalLength)
     points.sideWaist = new Point(waistLength, verticalLength)
     points.armpit = new Point(bustWidth, verticalLength - measurements.waistToArmpit)
     points.shoulder = new Point(neckLength, 0)
 
-    let horizontalArmscyeLength = points.armpit.x - points.shoulder.x
+    // Trueing side seam length
+    paths.sideSeam = new Path().move(points.armpit).line(points.sideWaist).hide()
+    points.truedSideWaist = paths.sideSeam.shiftAlong(measurements.waistToArmpit)
+    points.centerWaist = new Point(0, points.truedSideWaist.y)
 
+    // Drawing the path
     paths.front = new Path()
       .move(points.centerNeck)
       .line(points.centerWaist)
-      .line(points.sideWaist)
+      .line(points.truedSideWaist)
       .line(points.armpit)
       .move(points.shoulder)
       .line(points.centerNeck)
 
+    // Armscye
+    let horizontalArmscyeLength = points.armpit.x - points.shoulder.x
     points.cp1 = points.armpit.shift(170, horizontalArmscyeLength * 1).addCircle(3)
     paths.armhole = new Path().move(points.shoulder)._curve(points.cp1, points.armpit)
     store.set('frontArmholeLength', paths.armhole.length())
 
-    points.middle = new Point(waistLength / 2, verticalLength / 2)
-    points.title = points.middle
-    macro('title', {
-      at: points.title,
-      nr: 1,
-      title: 'Bodice Front',
-      align: 'center',
-      scale: 0.8,
-    })
-
+    // Pattern measurements
     macro('hd', {
       id: 'neckLength',
       from: points.centerNeck,
@@ -65,7 +61,7 @@ export const front = {
     macro('hd', {
       id: 'waistLength',
       from: points.centerWaist,
-      to: points.sideWaist,
+      to: points.truedSideWaist,
       y: points.centerWaist.y + 10,
     })
     macro('hd', {
@@ -85,6 +81,7 @@ export const front = {
       0,
       points.centerWaist.y - (measurements.hpsToWaistFront - measurements.hpsToBust)
     ).setCircle(5)
+
     macro('hd', {
       id: 'widthAtApex',
       from: new Point(
@@ -99,7 +96,7 @@ export const front = {
     })
     macro('vd', {
       id: 'sideSeam',
-      from: points.sideWaist,
+      from: points.truedSideWaist,
       to: points.armpit,
       x: points.armpit.x + 10,
     })
@@ -122,8 +119,25 @@ export const front = {
     })
     macro('pd', {
       id: 'sideseam',
-      path: new Path().move(points.armpit).line(points.sideWaist),
+      path: new Path().move(points.armpit).line(points.truedSideWaist),
       d: -10,
+    })
+
+    // Pattern information box
+    points.middle = new Point(waistLength / 2, verticalLength / 2)
+    points.title = points.middle
+    macro('title', {
+      at: points.title,
+      nr: 1,
+      title: 'Bodice Front',
+      align: 'center',
+      scale: 0.8,
+    })
+
+    // Grainline
+    macro('grainline', {
+      from: new Point(points.middle.x / 2, points.centerWaist.y * 0.25),
+      to: new Point(points.middle.x / 2, points.centerWaist.y * 0.75),
     })
 
     return part
