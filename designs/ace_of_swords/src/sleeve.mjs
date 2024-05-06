@@ -21,7 +21,7 @@ export const sleeve = {
   }) => {
     const elasticMod = 1.5
     const shirringMod = 1.5
-    const shoulderWidth = measurements.biceps * shirringMod * 0.5
+    const shoulderWidth = measurements.biceps * shirringMod * 0.6
     // 0.75 is the proportion of my biceps and the measurement for the off the shoulder sleeve
     let wristWidth = measurements.biceps * elasticMod
     let backArmholeLength = store.get('backArmholeLength')
@@ -44,28 +44,28 @@ export const sleeve = {
 
       paths.backArmhole = new Path()
         .move(points.backShoulder)
-        .curve(points.cp1Back, points.cp2Back, points.backArmpit)
+        ._curve(points.cp2Back, points.backArmpit)
       delta = paths.backArmhole.length() - backArmholeLength
       runs++
       if (delta > 0) tweak = tweak * 0.99
       else tweak = tweak * 1.02
-    } while (Math.abs(delta) > 1 && runs < 50)
+    } while (Math.abs(delta) > 0.3 && runs < 200)
 
     // Fitting the front armsleeve curve
     tweak = 1
     runs = 0
     do {
       points.cp1Front = points.frontShoulder.shift(0, 30).addCircle(5)
-      points.cp2Front = points.frontArmpit.shift(180, tweak * 30).addCircle(3)
+      points.cp2Front = points.frontArmpit.shift(195, tweak * 30).addCircle(3)
 
       paths.frontArmhole = new Path()
         .move(points.frontShoulder)
-        .curve(points.cp1Front, points.cp2Front, points.frontArmpit)
+        ._curve(points.cp2Front, points.frontArmpit)
       delta = paths.frontArmhole.length() - frontArmholeLength
       runs++
       if (delta > 0) tweak = tweak * 0.99
       else tweak = tweak * 1.02
-    } while (Math.abs(delta) > 1 && runs < 100)
+    } while (Math.abs(delta) > 0.3 && runs < 200)
 
     paths.shoulder = new Path().move(points.backShoulder).line(points.frontShoulder)
 
@@ -76,12 +76,21 @@ export const sleeve = {
 
     paths.frontUnderarm = new Path().move(points.frontArmpit).line(points.frontWrist)
 
-    paths.wrist = new Path()
-      .move(points.backArmpit)
-      .line(points.backWrist)
-      .line(points.frontWrist)
-      .line(points.frontArmpit)
-      .hide()
+    paths.wrist = new Path().move(points.backWrist).line(points.frontWrist)
+
+    // Seam Allowance
+    if (sa)
+      paths.sa = paths.backUnderarm
+        .offset(sa)
+        .join(
+          paths.wrist.offset(2 * sa),
+          paths.frontUnderarm.reverse(true).offset(sa),
+          paths.frontArmhole.reverse(true).offset(sa),
+          paths.shoulder.reverse(true).offset(2 * sa),
+          paths.backArmhole.offset(sa)
+        )
+        .close()
+        .addClass('fabric sa')
 
     // Notches
     snippets.backArmhole = new Snippet(
@@ -100,15 +109,6 @@ export const sleeve = {
       'notch',
       paths.frontUnderarm.shiftAlong(paths.frontUnderarm.length() / 2)
     )
-
-    // preparing the Seam Allowance
-    // TODO: Wrist SA and Shoulder SA need to maybe be adapted
-    paths.seam = paths.backArmhole.join(
-      paths.wrist,
-      paths.frontArmhole.reverse(true),
-      paths.shoulder.reverse(true)
-    )
-    if (sa) paths.sa = paths.seam.offset(sa).addClass('fabric sa')
 
     // placing the information on the pattern
     points.middle = new Point(wristWidth / 2, wristToArmpitLength)
