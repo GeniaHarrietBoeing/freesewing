@@ -21,13 +21,16 @@ export const sleeve = {
   }) => {
     const elasticMod = 1.5
     const shirringMod = 1.5
-    const shoulderWidth = measurements.biceps * shirringMod * 0.6
+    let shoulderWidth = measurements.biceps * shirringMod * 0.6
     // 0.75 is the proportion of my biceps and the measurement for the off the shoulder sleeve
     let wristWidth = measurements.biceps * elasticMod
     let backArmholeLength = store.get('backArmholeLength')
     let frontArmholeLength = store.get('frontArmholeLength')
+    let frontVerticalArmscyeLength = store.get('frontVerticalArmscyeLength')
+    let backVerticalArmscyeLength = store.get('backVerticalArmscyeLength')
     // Here I sort off have to decide how much higher the shoulder seam is compared to the armpit meating of all seams. What I have going for me, is that the length and proportions of people's arms are relatively similar. And, this doesn't need to approximate someones anatomical armpit height, because the sleeve is loose.
-    let wristToArmpitLength = measurements.shoulderToWrist * 0.8
+    let wristToArmpitLength =
+      measurements.shoulderToWrist - Math.min(frontVerticalArmscyeLength, backVerticalArmscyeLength)
 
     points.backShoulder = new Point(wristWidth / 2 - shoulderWidth / 2, 0)
     points.frontShoulder = points.backShoulder.shift(0, shoulderWidth)
@@ -35,16 +38,22 @@ export const sleeve = {
     points.frontArmpit = points.backArmpit.shift(0, wristWidth)
 
     // Fitting the back armsleeve curve
+    // TODO: controlpoints should have relative measurements
+    // TODO: there is the case of the vertical measurement of the sleevehead already being ~ the front sleeve length, such that there is no way of getting the armscye to fit
+    let armscyeY = points.backArmpit.y - points.backShoulder.y
+    let armscyeX = points.backShoulder.x - points.backArmpit.x
+    let cp1Offset = armscyeY * 0.3
+    let cp2Offset = armscyeX
     let tweak = 1
     let runs = 0
     let delta
     do {
-      points.cp1Back = points.backShoulder.shift(180, 30).addCircle(5)
-      points.cp2Back = points.backArmpit.shift(0, tweak * 30).addCircle(3)
+      points.cp1Back = points.backShoulder.shift(200, cp1Offset).addCircle(5)
+      points.cp2Back = points.backArmpit.shift(0, tweak * cp2Offset).addCircle(3)
 
       paths.backArmhole = new Path()
         .move(points.backShoulder)
-        ._curve(points.cp2Back, points.backArmpit)
+        .curve(points.cp1Back, points.cp2Back, points.backArmpit)
       delta = paths.backArmhole.length() - backArmholeLength
       runs++
       if (delta > 0) tweak = tweak * 0.99
@@ -55,12 +64,12 @@ export const sleeve = {
     tweak = 1
     runs = 0
     do {
-      points.cp1Front = points.frontShoulder.shift(0, 30).addCircle(5)
-      points.cp2Front = points.frontArmpit.shift(195, tweak * 30).addCircle(3)
+      points.cp1Front = points.frontShoulder.shift(340, cp1Offset).addCircle(5)
+      points.cp2Front = points.frontArmpit.shift(180, tweak * cp2Offset).addCircle(3)
 
       paths.frontArmhole = new Path()
         .move(points.frontShoulder)
-        ._curve(points.cp2Front, points.frontArmpit)
+        .curve(points.cp1Front, points.cp2Front, points.frontArmpit)
       delta = paths.frontArmhole.length() - frontArmholeLength
       runs++
       if (delta > 0) tweak = tweak * 0.99

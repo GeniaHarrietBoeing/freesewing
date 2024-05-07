@@ -41,9 +41,11 @@ export const back = {
 
     // Armscye
     let horizontalArmscyeLength = points.armpit.x - points.shoulder.x
+    let verticalArmscyeLength = points.armpit.y - points.shoulder.y
     points.cp1 = points.armpit.shift(170, horizontalArmscyeLength).addCircle(3)
     paths.armhole = new Path().move(points.shoulder)._curve(points.cp1, points.armpit)
     store.set('backArmholeLength', paths.armhole.length())
+    store.set('backVerticalArmscyeLength', verticalArmscyeLength)
 
     // Pattern measurements
     macro('hd', {
