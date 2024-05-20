@@ -21,6 +21,32 @@ export const sleeve = {
   }) => {
     const elasticMod = 1.5
     const shirringMod = 1.5
+
+    //Second Attempt at Sleeves
+
+    let R = store.get('backArmholeLength') * 2
+    let r = store.get('frontArmholeLength')
+    let d = measurements.biceps + 40 //width of sleeve
+
+    // need to find the intersection points of the two circles of radius back and frontArmholeLength
+    let intersectionX = (R ** 2 - r ** 2 + d ** 2) / (2 * d)
+    let intersectionY = Math.sqrt(4 * d ** 2 * R ** 2 - (R ** 2 - r ** 2 + d ** 2) ** 2) / (2 * d)
+    if (intersectionY > 0)
+      points.intersection = new Point(intersectionX, intersectionY).setCircle(4)
+    else points.intersection = new Point(0, 0)
+
+    paths.basicCap = new Path()
+      .move(new Point(0, intersectionY))
+      .line(new Point(intersectionX, 0))
+      .line(new Point(d, intersectionY))
+
+    macro('pd', {
+      id: 'frontArmhole',
+      path: paths.basicCap,
+      d: -10,
+    })
+
+    /* 
     let shoulderWidth = measurements.biceps * shirringMod * 0.6
     // 0.75 is the proportion of my biceps and the measurement for the off the shoulder sleeve
     let wristWidth = measurements.biceps * elasticMod
@@ -30,7 +56,7 @@ export const sleeve = {
     let backVerticalArmscyeLength = store.get('backVerticalArmscyeLength')
     // Here I sort off have to decide how much higher the shoulder seam is compared to the armpit meating of all seams. What I have going for me, is that the length and proportions of people's arms are relatively similar. And, this doesn't need to approximate someones anatomical armpit height, because the sleeve is loose.
     let wristToArmpitLength =
-      measurements.shoulderToWrist - Math.min(frontVerticalArmscyeLength, backVerticalArmscyeLength)
+      measurements.shoulderToWrist - Math.max(frontVerticalArmscyeLength, backVerticalArmscyeLength)
 
     points.backShoulder = new Point(wristWidth / 2 - shoulderWidth / 2, 0)
     points.frontShoulder = points.backShoulder.shift(0, shoulderWidth)
@@ -170,7 +196,7 @@ export const sleeve = {
       path: paths.frontArmhole,
       d: -10,
     })
-
+    */
     return part
   },
 }

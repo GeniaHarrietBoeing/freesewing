@@ -11,10 +11,82 @@ export const front = {
     'bustFront',
     'underbust',
     'highBustFront',
+    'neck',
+    'shoulderSlope',
   ],
-  draft: ({ Path, paths, Point, points, measurements, store, macro, paperless, part }) => {
+  draft: ({ Path, paths, Point, points, measurements, store, macro, paperless, utils, part }) => {
     const shirringMod = 1.5
+    const dartWidth = 70
 
+    // Easy fitting bodice
+
+    // Neck and Armscye
+    store.set('frontVerticalArmscyeLength', 20)
+
+    let armscyeDepth = measurements.hpsToWaistFront - measurements.waistToArmpit
+    let totalChestEase = 70
+
+    points.centerNeck = new Point(0, measurements.neck * 0.2).setCircle(2)
+    points.hps = new Point(measurements.neck * 0.2, 0).setCircle(2)
+    points.hpsDart = points.hps.shift(0, dartWidth / 2).setCircle(2)
+    points.chest = new Point(0, armscyeDepth).setCircle(2)
+    points.sideChest = new Point(0.5 * measurements.highBustFront, points.chest.y).setCircle(2)
+    points.underArm = points.sideChest
+      .shift(
+        0,
+        0.5 *
+          (0.5 * measurements.chest +
+            totalChestEase -
+            points.sideChest.x -
+            (0.5 * measurements.shoulderToShoulder + 10))
+      )
+      .setCircle(2)
+    points.midArmscye = points.sideChest
+      .shift(90, 0.5 * (points.chest.y - points.centerNeck.y) - 20)
+      .setCircle(4)
+    let xShoulder = measurements.shoulderToShoulder / 2 + dartWidth / 2
+    points.shoulder = utils
+      .beamsIntersect(
+        new Point(xShoulder, 0),
+        new Point(xShoulder, 100),
+        points.hpsDart,
+        points.hpsDart.shift(360 - measurements.shoulderSlope, 100)
+      )
+      .setCircle(5)
+
+    //where to cut off for off-the-shoulder:
+    let yCutOff = points.centerNeck + (points.chest.y - points.centerNeck.y) / 3
+    points.meeeh = new Point(0, 0).setText(yCutOff)
+    paths.cutOff = new Path().move(new Point(0, yCutOff)).line(new Point(100, 10))
+
+    paths.shoulder = new Path().move(points.hpsDart).line(points.shoulder)
+
+    paths.armscye = new Path()
+      .move(points.underArm)
+      .curve(points.sideChest, points.midArmscye, points.shoulder)
+    store.set('frontArmholeLength', paths.armscye.length())
+
+    paths.chest = new Path().move(points.chest).line(points.underArm)
+
+    macro('pd', {
+      id: 'shoulder',
+      path: paths.shoulder,
+      d: -10,
+    })
+
+    macro('pd', {
+      id: 'armhole',
+      path: paths.armscye,
+      d: -10,
+    })
+
+    macro('pd', {
+      id: 'chest',
+      path: paths.chest,
+      d: -10,
+    })
+
+    /*
     let armpitToArmpit = measurements.shoulderToShoulder * 0.85
     let neckLength = (armpitToArmpit * shirringMod) / 2
     let verticalLength =
@@ -142,6 +214,7 @@ export const front = {
       to: new Point(points.middle.x / 2, points.centerWaist.y * 0.75),
     })
 
+  */
     return part
   },
 }

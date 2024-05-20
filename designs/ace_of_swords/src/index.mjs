@@ -7,7 +7,6 @@ import { data } from '../data.mjs'
 import { front } from './front.mjs'
 import { back } from './back.mjs'
 import { sleeve } from './sleeve.mjs'
-
 // Create new design
 const Ace_of_swords = new Design({
   data,
