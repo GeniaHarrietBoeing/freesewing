@@ -54,11 +54,6 @@ export const front = {
       )
       .setCircle(5)
 
-    //where to cut off for off-the-shoulder:
-    let yCutOff = points.centerNeck + (points.chest.y - points.centerNeck.y) / 3
-    points.meeeh = new Point(0, 0).setText(yCutOff)
-    paths.cutOff = new Path().move(new Point(0, yCutOff)).line(new Point(100, 10))
-
     paths.shoulder = new Path().move(points.hpsDart).line(points.shoulder)
 
     paths.armscye = new Path()
@@ -67,6 +62,22 @@ export const front = {
     store.set('frontArmholeLength', paths.armscye.length())
 
     paths.chest = new Path().move(points.chest).line(points.underArm)
+
+    //where to cut off for off-the-shoulder:
+    let yCutOff = points.centerNeck.y + (points.chest.y - points.centerNeck.y) / 3
+    points.meeeh = new Point(0, 0).setText(yCutOff)
+    paths.cutOff = new Path()
+      .move(new Point(0, yCutOff))
+      .line(new Point(points.underArm.x, yCutOff))
+    points.cutOffShoulder = utils
+      .curveIntersectsY(
+        points.underArm,
+        points.sideChest,
+        points.midArmscye,
+        points.shoulder,
+        yCutOff
+      )
+      .setCircle(2)
 
     macro('pd', {
       id: 'shoulder',
